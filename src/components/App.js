@@ -1,50 +1,62 @@
-import React, { useState } from "react";
-import TodoInput from "./TodoInput";
-import TodoList from "./TodoList";
-// import { observable, computed } from "mobx";
-// import { observer } from "mobx-react";
+import React from "react";
+import TodoStore from "../stores/TodoStore";
+import { observer } from "mobx-react";
 
-const App = () => {
-  const [todos, setTodos] = useState([]);
-
-  const addTodo = (text) => {
-    const newTodos = [...todos];
-    newTodos.push(text);
-    setTodos(newTodos);
+@observer
+class App extends React.Component {
+  state = {
+    todoInputText: "",
+    todoStore: new TodoStore(),
   };
 
-  return (
-    <div>
-      <h1>Todo Game with Mobx</h1>
-      <TodoInput addTodo={addTodo} />
-      <TodoList todos={todos} />
-    </div>
-  );
-};
+  handleAddTodo = (e) => {
+    e.preventDefault();
+    this.state.todoStore.addTodo(this.state.todoInputText);
+    this.setState({ todoInputText: "" });
+  };
 
-// class Todo {
-//   @observable text = "";
-//   @observable espiringDate = null;
-//   @observable completed = false;
-// }
+  handleOnChange = (e) => {
+    this.setState({ todoInputText: e.target.value });
+  };
 
-// class TodoList {
-//   @observable todos = [];
-//   @computed get allCompleted() {
-//     return this.todos.filter((todo) => !todo.completed).length === 0;
-//   }
-// }
+  handleToggleCompleted = (todo) => {
+    this.state.todoStore.toggleCompleted(todo);
+  };
 
-// class TodoListView extends React.Component {
-//   render() {
-//     const todoStore = new TodoList();
+  render() {
+    return (
+      <div>
+        <h1>Todo Game</h1>
 
-//     return (
-//       <div>
-//         <div>{todoStore.todos}</div>
-//       </div>
-//     );
-//   }
-// }
+        <form onSubmit={this.handleAddTodo}>
+          <input
+            value={this.state.todoInputText}
+            onChange={this.handleOnChange}
+            placeholder="write new todo..."
+          ></input>
+          <button>Add</button>
+        </form>
+
+        <ul>
+          {this.state.todoStore.todos.map((todo) => (
+            <span key={todo.text} style={{ display: "flex" }}>
+              <p style={{ marginRight: "10px" }}>{todo.text}</p>
+              <p>Completed: {todo.isCompleted ? "Yes" : "No"}</p>
+              <button onClick={() => this.handleToggleCompleted(todo)}>
+                Mark As Completed
+              </button>
+            </span>
+          ))}
+        </ul>
+
+        <p>
+          {this.state.todoStore.allFinished
+            ? "All Finished"
+            : "Not yet all finished"}
+        </p>
+      </div>
+    );
+  }
+}
 
 export default App;
